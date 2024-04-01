@@ -10,4 +10,10 @@ This Repo will create a set of resources on AWS for processing and storing the [
 
 3. `iam_polices/` contains a collection of policies and permissions for the AWS Resources
 
+4. `config.sh` This is a file that should be at the first level of the repo and contain the following linux variable assignments
 
+   1. `region` being the preferred region of the AWS resources
+   2. `s3name` being the name you want your s3 bucket to be
+   3. `redshift_role_name` being the name of the redshift role you intend to have
+   4. `redshift_password` the password for the redshift admin
+   5. `account_number` the number of the AWS account
