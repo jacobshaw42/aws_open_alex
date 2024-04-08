@@ -11,8 +11,8 @@ spark = (
 
 oa_id = udf(lambda x: x.split(".org/")[-1] if x is not None else None, StringType())
 
-institutions_path = "tmp_data/institutions"
-publishers_path = "tmp_data/publishers"
+institutions_path = "s3a://open-alex-js0258/tmp_data/institutions/"
+publishers_path = "s3a://open-alex-js0258/tmp_data/publishers/"
 
 inst = spark.read.json(institutions_path).withColumn("openalex_institution_id", oa_id(col("id")))
 
@@ -29,6 +29,8 @@ institutions = inst.select(
 
 institutions.show()
 
+institutions.write.parquet("s3a://open-alex-js0258/processed/institutions/", mode="overwrite")
+
 associated_institutions = inst.select(
     col("openalex_institution_id"),
     explode(inst.associated_institutions).alias("associated")
@@ -42,6 +44,8 @@ associated_institutions = inst.select(
 
 associated_institutions.show()
 
+associated_institutions.write.parquet("s3a://open-alex-js0258/processed/associated_institutions/", mode="overwrite")
+
 roles = inst.select(
     col("openalex_institution_id"),
     explode(inst.roles)
@@ -53,6 +57,7 @@ roles = inst.select(
 
 roles.show()
 
+roles.write.parquet("s3a://open-alex-js0258/processed/roles/", mode="overwrite")
 
 pubs = spark.read.json(publishers_path).withColumn("openalex_publisher_id", oa_id(col("id")))
 
@@ -61,6 +66,8 @@ publishers = pubs.select(
     "cited_by_count",
     "display_name",
 )
+
+publishers.write.parquet("s3a://open-alex-js0258/processed/publishers/", mode="overwrite")
 
 pubs_roles = pubs.select(
     "openalex_publisher_id",
@@ -73,3 +80,5 @@ pubs_roles = pubs.select(
         )
 
 pubs_roles.show()
+
+pubs_roles.write.parquet("s3a://open-alex-js0258/processed/publisher_roles/", mode="overwrite")

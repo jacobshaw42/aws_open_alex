@@ -11,7 +11,7 @@ else
     echo "S3 Bucket $s3name does not exist"
 fi
 
-# delete roles and policies
+# delete redshift role and policies
 check_role=$(aws iam list-roles --output text --query 'Roles[?RoleName==`AmazonRedshift-CommandsAccessRole`].RoleName')
 if [[ $check_role == $redshift_role_name ]]
 then
@@ -19,6 +19,20 @@ then
     aws iam detach-role-policy --role-name AmazonRedshift-CommandsAccessRole --policy-arn $POLICY_ARN
     aws iam delete-policy --policy-arn $POLICY_ARN
     aws iam delete-role --role-name AmazonRedshift-CommandsAccessRole
+else
+    echo "Redshift role does not exist"
+fi
+
+# delete emr role
+ROLE_NAME="EMRServerlessS3RuntimeRole"
+check_role=$(aws iam list-roles --output text --query 'Roles[?RoleName==`EMRServerlessS3RuntimeRole`].RoleName')
+echo "checking for emr role"
+if [[ $check_role == $ROLE_NAME ]]
+then
+    POLICY_ARN=$(aws iam list-policies --output text --query 'Policies[?PolicyName==`EMRServerlessS3RuntimeRole`].Arn')
+    aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $POLICY_ARN
+    aws iam delete-policy --policy-arn $POLICY_ARN
+    aws iam delete-role --role-name $ROLE_NAME
 else
     echo "Role does not exist"
 fi

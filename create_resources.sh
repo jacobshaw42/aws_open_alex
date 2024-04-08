@@ -9,8 +9,8 @@ then
     #aws s3 cp s3://openalex/data/institutions/ s3://$s3name/institutions/ --recursive
     aws s3 cp s3://openalex/data/institutions/ tmp_data/institutions/ --recursive
     aws s3 cp s3://openalex/data/publishers/ tmp_data/publishers/ --recursive
-    gunzip tmp_data/institutions/*/*.gz
-    gunzip tmp_data/publishers/*/*.gz
+    #gunzip tmp_data/institutions/*/*.gz
+    #gunzip tmp_data/publishers/*/*.gz
     aws s3 cp tmp_data/institutions/  s3://$s3name/institutions/ --recursive --exclude "*" --include "*part*"
     aws s3 cp tmp_data/publishers/ s3://$s3name/publishers/ --recursive --exclude "*" --include "*part*"
     rm -r tmp_data/institutions/updated_date\=202*
@@ -25,18 +25,34 @@ check_role=$(aws iam list-roles --output text --query 'Roles[?RoleName==`AmazonR
 if [[ $check_role != $redshift_role_name ]]
 then
     echo "creating redshift role"
-    ROLE_NAME=$(aws iam create-role --role-name $redshift_role_name --region $region --assume-role-policy-document file://iam_policies/redshift_trust_policy.json --output text --query Role.RoleName)
+    REDSHIFT_ROLE_NAME=$(aws iam create-role --role-name $redshift_role_name --region $region --assume-role-policy-document file://iam_policies/redshift_trust_policy.json --output text --query Role.RoleName)
     echo "creating redshift policy"
     POLICY_ARN=$(aws iam create-policy --policy-name $redshift_role_name --policy-document file://iam_policies/redshift_access.json --output text --query Policy.Arn)
     echo "attaching redshift policy to role"
     aws iam attach-role-policy --role-name $redshift_role_name --policy-arn $POLICY_ARN
 else
-    echo "Roles already created"
+    echo "redshift role already created"
+fi
+
+check_role=$(aws iam list-roles --output text --query 'Roles[?RoleName==`EMRServerlessS3RuntimeRole`].RoleName')
+if [[ $check_role != "EMRServerlessS3RuntimeRole" ]]
+then
+    echo "creating emr role"
+    EMR_ROLE_NAME=$(aws iam create-role \
+        --role-name EMRServerlessS3RuntimeRole \
+        --assume-role-policy-document file://iam_policies/emr_serverless_trust_policy.json \
+        --output text --query Role.RoleName)
+    echo "creating emr policy"
+    POLICY_ARN=$(aws iam create-policy --policy-name EMRServerlessS3RuntimeRole --policy-document file://iam_policies/redshift_access.json --output text --query Policy.Arn)
+    echo "attaching emr policy to role"
+    aws iam attach-role-policy --role-name EMRServerlessS3RuntimeRole --policy-arn $POLICY_ARN
+else
+    echo "emr role already exists"
 fi
 
 # create and assign security groups
 
-echo "now let's create the redshift instance"
+# echo "now let's create the redshift instance"
 
 # create redshift
 # aws redshift create-cluster --cluster-identifier open-alex-js-rs --db-name open-alex-js --node-type dc2.large \

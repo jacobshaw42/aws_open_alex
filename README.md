@@ -1,3 +1,6 @@
+# TODO
+# use https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/getting-started.html#gs-prerequisites to createemr spark job
+
 ## Purpose
 
 This Repo will create a set of resources on AWS for processing and storing the [OpenAlex Dataset](https://openalex.org/)
