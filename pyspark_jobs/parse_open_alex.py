@@ -1,6 +1,11 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode, col, udf
 from pyspark.sql.types import StringType
+import logging
+
+logging.info("testing")
+
+print("testing")
 
 spark = (
     SparkSession
@@ -11,8 +16,8 @@ spark = (
 
 oa_id = udf(lambda x: x.split(".org/")[-1] if x is not None else None, StringType())
 
-institutions_path = "s3a://open-alex-js0258/tmp_data/institutions/"
-publishers_path = "s3a://open-alex-js0258/tmp_data/publishers/"
+institutions_path = "s3://open-alex-js0258/tmp_data/institutions/"
+publishers_path = "s3://open-alex-js0258/tmp_data/publishers/"
 
 inst = spark.read.json(institutions_path).withColumn("openalex_institution_id", oa_id(col("id")))
 

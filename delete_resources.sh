@@ -37,6 +37,22 @@ else
     echo "Role does not exist"
 fi
 
+# delete emr-serverless
+emr_serverless_app_id=$(aws emr-serverless list-applications --output text --query 'applications[?name==`open-alex-js`].id')
+if [[ $emr_serverless_app_id != "" ]]
+then
+    aws emr-serverless stop-application --application-id $emr_serverless_app_id
+    state=$(aws emr-serverless get-application --application-id $emr_serverless_app_id --output text --query 'application.state')
+    while [ $state != "STOPPED" ]
+    do
+        sleep 3
+        state=$(aws emr-serverless get-application --application-id $emr_serverless_app_id --output text --query 'application.state')
+    done
+    aws emr-serverless delete-application --application-id $emr_serverless_app_id
+else
+    echo "no emr serverless applicaiton to delete"
+fi
+
 # delete redshift
 redshift_check=$(aws redshift describe-clusters --output text --query 'Clusters')
 if [[ $redshift_check != "" ]]

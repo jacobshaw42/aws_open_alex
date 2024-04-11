@@ -15,6 +15,7 @@ then
     aws s3 cp tmp_data/publishers/ s3://$s3name/publishers/ --recursive --exclude "*" --include "*part*"
     rm -r tmp_data/institutions/updated_date\=202*
     rm -r tmp_data/publishers/updated_date\=202*
+    aws s3 cp pyspark_jobs/parse_open_alex.py s3://$s3name/scripts/
 else
     echo "S3 Bucket $s3name already exists"
 fi
@@ -43,11 +44,24 @@ then
         --assume-role-policy-document file://iam_policies/emr_serverless_trust_policy.json \
         --output text --query Role.RoleName)
     echo "creating emr policy"
-    POLICY_ARN=$(aws iam create-policy --policy-name EMRServerlessS3RuntimeRole --policy-document file://iam_policies/redshift_access.json --output text --query Policy.Arn)
+    POLICY_ARN=$(aws iam create-policy --policy-name EMRServerlessS3RuntimeRole --policy-document file://iam_policies/emr-serverless-access-policy.json --output text --query Policy.Arn)
     echo "attaching emr policy to role"
     aws iam attach-role-policy --role-name EMRServerlessS3RuntimeRole --policy-arn $POLICY_ARN
 else
     echo "emr role already exists"
+fi
+
+# create emr serverless
+echo "creating emr serverless"
+emr_serverless_app_qname=$(aws emr-serverless list-applications --output text --query 'applications[?name==`open-alex-js`].name')
+if [[ $emr_serverless_app_qname != $emr_serverless_app_name ]]
+then
+    aws emr-serverless create-application \
+        --release-label emr-6.6.0 \
+        --type "SPARK" \
+        --name $emr_serverless_app_name
+else
+    echo "emr arleady exists"
 fi
 
 # create and assign security groups
