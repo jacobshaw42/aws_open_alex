@@ -17,7 +17,7 @@ then
         --name open-alex-parse \
         --job-driver '{
             "sparkSubmit": {
-            "entryPoint": "s3://$s3name/scripts/parse_open_alex.py",
+            "entryPoint": "s3://open-alex-js0258/scripts/parse_open_alex.py",
             "sparkSubmitParameters": "--conf spark.executor.cores=1 --conf spark.executor.memory=4g --conf spark.driver.cores=1 --conf spark.driver.memory=4g --conf spark.executor.instances=1"
             }
         }'

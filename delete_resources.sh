@@ -41,10 +41,10 @@ fi
 emr_serverless_app_id=$(aws emr-serverless list-applications --output text --query 'applications[?name==`open-alex-js`].id')
 if [[ $emr_serverless_app_id != "" ]]
 then
-    aws emr-serverless stop-application --application-id $emr_serverless_app_id
     state=$(aws emr-serverless get-application --application-id $emr_serverless_app_id --output text --query 'application.state')
-    while [ $state != "STOPPED" ]
+    while [ $state == "STARTED" ] || [ $state == "STARTING" ]
     do
+        aws emr-serverless stop-application --application-id $emr_serverless_app_id
         sleep 3
         state=$(aws emr-serverless get-application --application-id $emr_serverless_app_id --output text --query 'application.state')
     done
