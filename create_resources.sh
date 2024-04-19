@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 source config.sh
 
+s3name="open-alex-js0258"
+redshift_role_name="AmazonRedshift-CommandsAccessRole"
+emr_serverless_app_name="open-alex-js"
+
 # create the s3 bucket and download source data files
 check_s3=$(aws s3api list-buckets --output text --query 'Buckets[?Name==`open-alex-js0258`].Name')
 if [[ $check_s3 != $s3name ]] 

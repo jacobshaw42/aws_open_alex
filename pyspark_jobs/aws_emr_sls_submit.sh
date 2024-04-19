@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 source config.sh
 
+s3name="open-alex-js0258"
+redshift_role_name="AmazonRedshift-CommandsAccessRole"
+emr_serverless_app_name="open-alex-js"
+
 echo "getting policy"
 EMR_ROLE_ARN=$(aws iam list-roles \
                 --query 'Roles[?RoleName==`EMRServerlessS3RuntimeRole`].Arn' \
