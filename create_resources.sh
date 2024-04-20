@@ -10,11 +10,8 @@ check_s3=$(aws s3api list-buckets --output text --query 'Buckets[?Name==`open-al
 if [[ $check_s3 != $s3name ]] 
 then
     aws s3api create-bucket --bucket $s3name --region $region --create-bucket-configuration '{"LocationConstraint":"us-west-2"}'
-    #aws s3 cp s3://openalex/data/institutions/ s3://$s3name/institutions/ --recursive
     aws s3 cp s3://openalex/data/institutions/ tmp_data/institutions/ --recursive
     aws s3 cp s3://openalex/data/publishers/ tmp_data/publishers/ --recursive
-    #gunzip tmp_data/institutions/*/*.gz
-    #gunzip tmp_data/publishers/*/*.gz
     aws s3 cp tmp_data/institutions/  s3://$s3name/institutions/ --recursive --exclude "*" --include "*part*"
     aws s3 cp tmp_data/publishers/ s3://$s3name/publishers/ --recursive --exclude "*" --include "*part*"
     rm -r tmp_data/institutions/updated_date\=202*
@@ -67,11 +64,3 @@ then
 else
     echo "emr arleady exists"
 fi
-
-# create and assign security groups
-
-# echo "now let's create the redshift instance"
-
-# create redshift
-# aws redshift create-cluster --cluster-identifier open-alex-js-rs --db-name open-alex-js --node-type dc2.large \
-#      --number-of-nodes 1 --master-username redshift1 --master-user-password $redshift_password --default-iam-role-arn $POLICY_ARN \
