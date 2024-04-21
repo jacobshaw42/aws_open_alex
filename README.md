@@ -6,7 +6,7 @@ The data is very nested json and it has several entities that have relationships
 
 Due to the large size of the data and the potential costs of storing and processing that much data, we will use a small subset of the OpenAlex dataset. Just the Institution and Publisher entities. If you have the AWS CLI downloaded, you can view the size of the data and entities by using the following command
 
-```
+```bash
 aws s3 ls --summarize --human-readable --no-sign-request --recursive s3://openalex/data/works/
 ```
 
@@ -46,7 +46,108 @@ There after, we will create the emr-serverless application and the redshift inst
 
 Then, using the [aws_emr_sls_submit.sh](https://github.com/jacobshaw42/aws_open_alex/blob/main/pyspark_jobs/aws_emr_sls_submit.sh), we will submit the [scripts/parse_open_alex.py](https://github.com/jacobshaw42/aws_open_alex/blob/main/pyspark_jobs/parse_open_alex.py) to the emr-serverless application we created. 
 
-This will create a Spark job
+Once you have run the script, you should recieve output similar to the following
+
+```bash
+getting policy
+using execution role arn:aws:iam::038802921959:role/EMRServerlessS3RuntimeRole
+submitting job
+{
+    "applicationId": "00fio6pdq5dm1t0l",
+    "jobRunId": "00fio6pj03lbu80m",
+    "arn": "arn:aws:emr-serverless:us-west-2:038802921959:/applications/00fio6pdq5dm1t0l/jobruns/00fio6pj03lbu80m"
+}
+```
+
+In this output, you have the application id again, and the job run id. We can use this to check the status of the job without having to go through the process of stepping all the way through the webUI.
+
+```bash
+aws emr-serverless get-job-run --application-id 00fio6pdq5dm1t0l --job-run-id 00fio6pj03lbu80m
+```
+
+Which returns the following output. There is quite a lot, but we can see that is success. So, now we can check to see if the files are on our S3 bucket.
+
+```bash
+{
+    "jobRun": {
+        "applicationId": "00fio6pdq5dm1t0l",
+        "jobRunId": "00fio6pj03lbu80m",
+        "name": "open-alex-parse",
+        "arn": "arn:aws:emr-serverless:us-west-2:038802921959:/applications/00fio6pdq5dm1t0l/jobruns/00fio6pj03lbu80m",
+        "createdBy": "arn:aws:iam::038802921959:user/admin",
+        "createdAt": "2024-04-21T10:52:47.474000-05:00",
+        "updatedAt": "2024-04-21T10:56:51.201000-05:00",
+        "executionRole": "arn:aws:iam::038802921959:role/EMRServerlessS3RuntimeRole",
+        "state": "SUCCESS",
+        "stateDetails": "",
+        "releaseLabel": "emr-6.6.0",
+        "configurationOverrides": {
+            "monitoringConfiguration": {
+                "managedPersistenceMonitoringConfiguration": {
+                    "enabled": true
+                }
+            }
+        },
+        "jobDriver": {
+            "sparkSubmit": {
+                "entryPoint": "s3://open-alex-js0258/scripts/parse_open_alex.py",
+                "sparkSubmitParameters": "--conf spark.executor.cores=1 --conf spark.executor.memory=4g --conf spark.driver.cores=1 --conf spark.driver.memory=4g --conf spark.executor.instances=1"
+            }
+        },
+        "tags": {},
+        "totalResourceUtilization": {
+            "vCPUHour": 0.106,
+            "memoryGBHour": 0.531,
+            "storageGBHour": 2.122
+        },
+        "totalExecutionDurationSeconds": 107,
+        "executionTimeoutMinutes": 720,
+        "billedResourceUtilization": {
+            "vCPUHour": 0.106,
+            "memoryGBHour": 0.531,
+            "storageGBHour": 0.0
+        }
+    }
+}
+```
+
+Using the following command, we can see that the files are not on the S3 bucket in the processed directory that did not exist before.
+
+```bash
+aws s3 ls open-alex-js0258/processed/roles/
+2024-04-21 10:56:33          0 _SUCCESS
+2024-04-21 10:56:32      34233 part-00000-2370f18b-d8e6-4405-aca3-f38432d14e66-c000.snappy.parquet
+2024-04-21 10:56:32      16776 part-00001-2370f18b-d8e6-4405-aca3-f38432d14e66-c000.snappy.parquet
+2024-04-21 10:56:30       2510 part-00002-2370f18b-d8e6-4405-aca3-f38432d14e66-c000.snappy.parquet
+```
+
+If you have installed the [local_pyspark/requirements.txt](https://github.com/jacobshaw42/aws_open_alex/blob/main/local_pyspark/requirements.txt), then you can open a python3 terminal and load a file to ensure that processing worked.
+
+```bash
+python3
+Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import pandas as pd
+>>> df = pd.read_parquet("s3://open-alex-js0258/processed/roles/part-00000-2370f18b-d8e6-4405-aca3-f38432d14e66-c000.snappy.parquet")
+>>> df
+     openalex_institution_id      role_id       role
+0                 I136199984  P4310316284  publisher
+1                  I97018004  P4310316103  publisher
+2                  I27837315  P4310316579  publisher
+3                 I201448701  P4310321323  publisher
+4                 I145311948  P4310316510  publisher
+...                      ...          ...        ...
+2354             I4210159592  P4310319417  publisher
+2355             I4210164846  P4310316370  publisher
+2356             I4210165989  P4310311577  publisher
+2357             I4210166060  P4310311560  publisher
+2358             I4210166127  P4310316768  publisher
+
+[2359 rows x 3 columns]
+```
+
+
+Now let's take a look inside the PySpark Parsing Script. The following will create a Spark job
 
 ```Python
 spark = (
@@ -70,7 +171,7 @@ The above includes a user defined function that will parse and clean the `id` co
 
 The following is an example of parsing the institutions entity to obtain a new associated institutions that will explode the nested associated institutions column with the openalex id column and pull additional data to a flatter format that could be easily and efficiently imported into a relational database.
 
-```
+```python
 associated_institutions = inst.select(
     col("openalex_institution_id"),
     explode(inst.associated_institutions).alias("associated")
@@ -93,7 +194,7 @@ The results will be the parquet files that are now flattened in a tabular manner
 
 Using these lessons and skills learned in the course were extremely important, because all of the work to setup the cloud compute resources was done using the console command line and documentation on how to us the AWS command line. For example, creating the roles and policies necessary for resources to interact was possibly the most challenging part of this portion of the project. Below, the code snippet checks for the existence of a role, because attempting to create a role that already exists would return an error. Also, we needed to save the role name and policy arn return from the output of creating those, so that they could be used when attaching them together. This is especially important for the policy arn, because this will be different every time the policy is created.
 
-```
+```bash
 check_role=$(aws iam list-roles --output text --query 'Roles[?RoleName==`EMRServerlessS3RuntimeRole`].RoleName')
 if [[ $check_role != "EMRServerlessS3RuntimeRole" ]]
 then
