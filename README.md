@@ -117,3 +117,22 @@ I believe this is an exceptional example of how a simple problem can lead to a r
 
 # Conclusion
 
+This project was especially helpful in learning how to implement certain small and medium size data skills I have learned before, but with cloud compute and larger data. Much of this time was spent learning about how to use the cloud compute resources with each other and how to set it all up using code, instead of the webUI. I believe this is especially important, because in enterprise level big data work, the webUI is great for a view of what is there, but not great for long term sustainable use.
+
+Learning about using PySpark on a truly big data application in the cloud is also something that is especially helpful and new for me. While I am somewhat familiar with PySpark, utilizing it in the cloud with a serverless application seems to be the modern use of PySpark and something I have yet to do. Not only did it display the easy of use and effectiveness, but also the low cost. Running my script a few times was extremely low cost over the course of this project, but creating and owning VMs or on premise compute is much more expensive.
+
+I had planned to import these files into either a relational database or a redshift cluster, however, in the process of learning to implement the cloud compute I did not have enough time to do this as well.
+
+# References and Resources
+
+### OpenAlex
+
+https://help.openalex.org/how-it-works/entities-overview
+
+### AWS CLI
+
+https://docs.aws.amazon.com/cli/latest/
+
+### AWS EMR Serverless Guide
+
+https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/getting-started.html
