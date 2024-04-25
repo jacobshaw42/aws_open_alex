@@ -12,7 +12,9 @@ aws s3 ls --summarize --human-readable --no-sign-request --recursive s3://openal
 
 # Backgound
 
-This dataset can be interesting because of the vast size of data that is so readily available that is also very similar to modern business data. Nested documents that are stored as separate entities that may need to be processed and joined together. An example could be social network/media data. Since that is often stored as document data that could be interesting to be viewed or queried for networking purposes.
+This dataset can be interesting because of the vast size of data that is so readily available that is also very similar to modern business data. Such as nested documents that are stored as separate entities that may need to be processed and joined together. An example could be social network/media data. Since that is often stored as document data that could be interesting to be viewed or queried for networking purposes.
+
+To solve this problem, it will take AWS Cloud Computing skills to setup the resources with proper permissions and PySpark skills to process the data into a more accessible format. Setting up the AWS resources can be done by the WebUI console or with the AWS CLI. Using the CLI is programmatic and can make replicating results much easier and faster with decent logic written in between the AWS CLI commands.
 
 # Methodology
 
