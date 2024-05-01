@@ -1,5 +1,7 @@
 # Introduction
 
+This [repo](https://github.com/jacobshaw42/aws_open_alex) is primarily a project for IU Master of Data Science INFO-I535
+
 The [OpenAlex Dataset](https://openalex.org/) is an open source dataset that contains Science of Science data. The idea behind the dataset is to provide the ability to study and analyze the history of scientific publications. The data is provided from an API or is downloadable as compressed json, which can be more difficult and less efficient to parse. 
 
 The data is very nested json and it has several entities that have relationships to each other. One difficult with the downloadable data is parsing it in a way that allows joining these separated, but connected entities. In this repo, we will provide the code necessary to create the AWS resource to store and process a small portion of the entities to flat parquet files for efficient and easy use. 
